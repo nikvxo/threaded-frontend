@@ -6,6 +6,9 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [editingId, setEditingId] = useState(null);
+  const [editingTitle, setEditingTitle] = useState('');
+
   useEffect(() => {
     const loadOutfits = async () => {
       try {
@@ -28,6 +31,8 @@ function App() {
     e.preventDefault();
     if (!title.trim()) return;
 
+    setError(null);
+
     try {
       const res = await fetch('http://localhost:3000/api/outfits', {
         method: 'POST',
@@ -43,6 +48,59 @@ function App() {
     } catch (err) {
       console.error(err);
       setError('Could not create outfit');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    setError(null);
+
+    try {
+      const res = await fetch(`http://localhost:3000/api/outfits/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) throw new Error('Failed to delete outfit');
+
+      setOutfits(prev => prev.filter(o => o.id !== id));
+    } catch (err) {
+      console.error(err);
+      setError('Could not delete outfit');
+    }
+  };
+
+  const startEdit = (outfit) => {
+    setEditingId(outfit.id);
+    setEditingTitle(outfit.title);
+    setError(null);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditingTitle('');
+  };
+
+  const handleSaveEdit = async (id) => {
+    if (!editingTitle.trim()) return;
+
+    setError(null);
+
+    try {
+      const res = await fetch(`http://localhost:3000/api/outfits/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: editingTitle.trim(), tags: [] }),
+      });
+
+      if (!res.ok) throw new Error('Failed to update outfit');
+
+      const updated = await res.json();
+      setOutfits(prev =>
+        prev.map(o => (o.id === id ? updated : o))
+      );
+      cancelEdit();
+    } catch (err) {
+      console.error(err);
+      setError('Could not update outfit');
     }
   };
 
@@ -74,9 +132,39 @@ function App() {
               border: '1px solid #ddd',
               borderRadius: '6px',
               marginBottom: '0.5rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '0.5rem',
             }}
           >
-            {o.title}
+            {editingId === o.id ? (
+              <>
+                <input
+                  value={editingTitle}
+                  onChange={e => setEditingTitle(e.target.value)}
+                  style={{ flex: 1, padding: '0.25rem' }}
+                />
+                <button onClick={() => handleSaveEdit(o.id)} style={{ marginRight: '0.25rem' }}>
+                  Save
+                </button>
+                <button onClick={cancelEdit}>
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <>
+                <span>{o.title}</span>
+                <div style={{ display: 'flex', gap: '0.25rem' }}>
+                  <button onClick={() => startEdit(o)}>
+                    Edit
+                  </button>
+                  <button onClick={() => handleDelete(o.id)}>
+                    Delete
+                  </button>
+                </div>
+              </>
+            )}
           </li>
         ))}
       </ul>
