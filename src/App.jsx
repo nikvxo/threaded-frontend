@@ -5,9 +5,13 @@ function App() {
   const [title, setTitle] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [tagsInput, setTagsInput] = useState('');
+  const [mood, setMood] = useState('');
 
   const [editingId, setEditingId] = useState(null);
   const [editingTitle, setEditingTitle] = useState('');
+  const [editingTagsInput, setEditingTagsInput] = useState('');
+  const [editingMood, setEditingMood] = useState('');
 
   useEffect(() => {
     const loadOutfits = async () => {
@@ -31,13 +35,16 @@ function App() {
     e.preventDefault();
     if (!title.trim()) return;
 
-    setError(null);
+    const tags = tagsInput
+      .split(',')
+      .map(t => t.trim())
+      .filter(Boolean);
 
     try {
       const res = await fetch('http://localhost:3000/api/outfits', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: title.trim(), tags: [] }),
+        body: JSON.stringify({ title: title.trim(), tags, mood }),
       });
 
       if (!res.ok) throw new Error('Failed to create outfit');
@@ -45,6 +52,8 @@ function App() {
       const newOutfit = await res.json();
       setOutfits(prev => [newOutfit, ...prev]);
       setTitle('');
+      setTagsInput('');
+      setMood('');
     } catch (err) {
       console.error(err);
       setError('Could not create outfit');
@@ -71,12 +80,16 @@ function App() {
   const startEdit = (outfit) => {
     setEditingId(outfit.id);
     setEditingTitle(outfit.title);
+    setEditingTagsInput(outfit.tags?.join(', ') || '');
+    setEditingMood(outfit.mood || '');
     setError(null);
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     setEditingTitle('');
+    setEditingTagsInput('');
+    setEditingMood('');
   };
 
   const handleSaveEdit = async (id) => {
@@ -84,11 +97,20 @@ function App() {
 
     setError(null);
 
+    const tags = editingTagsInput
+      .split(',')
+      .map(t => t.trim())
+      .filter(Boolean);
+
     try {
       const res = await fetch(`http://localhost:3000/api/outfits/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: editingTitle.trim(), tags: [] }),
+        body: JSON.stringify({
+          title: editingTitle.trim(),
+          tags,
+          mood: editingMood,
+        }),
       });
 
       if (!res.ok) throw new Error('Failed to update outfit');
@@ -113,7 +135,19 @@ function App() {
           value={title}
           onChange={e => setTitle(e.target.value)}
           placeholder="Describe your outfit..."
-          style={{ padding: '0.5rem', width: '70%', marginRight: '0.5rem' }}
+          style={{ padding: '0.5rem', width: '100%', marginBottom: '0.5rem' }}
+        />
+        <input
+          value={tagsInput}
+          onChange={e => setTagsInput(e.target.value)}
+          placeholder="Tags (comma separated: casual, summer, date)"
+          style={{ padding: '0.5rem', width: '100%', marginBottom: '0.5rem' }}
+        />
+        <input
+          value={mood}
+          onChange={e => setMood(e.target.value)}
+          placeholder="Mood (confident, cozy, etc.)"
+          style={{ padding: '0.5rem', width: '100%', marginBottom: '0.5rem' }}
         />
         <button type="submit" style={{ padding: '0.5rem 1rem' }}>
           Add
@@ -140,11 +174,26 @@ function App() {
           >
             {editingId === o.id ? (
               <>
-                <input
-                  value={editingTitle}
-                  onChange={e => setEditingTitle(e.target.value)}
-                  style={{ flex: 1, padding: '0.25rem' }}
-                />
+                <div style={{ flex: 1 }}>
+                  <input
+                    value={editingTitle}
+                    onChange={e => setEditingTitle(e.target.value)}
+                    placeholder="Title"
+                    style={{ display: 'block', width: '100%', padding: '0.25rem', marginBottom: '0.25rem' }}
+                  />
+                  <input
+                    value={editingTagsInput}
+                    onChange={e => setEditingTagsInput(e.target.value)}
+                    placeholder="Tags (comma separated)"
+                    style={{ display: 'block', width: '100%', padding: '0.25rem', marginBottom: '0.25rem' }}
+                  />
+                  <input
+                    value={editingMood}
+                    onChange={e => setEditingMood(e.target.value)}
+                    placeholder="Mood"
+                    style={{ display: 'block', width: '100%', padding: '0.25rem' }}
+                  />
+                </div>
                 <button onClick={() => handleSaveEdit(o.id)} style={{ marginRight: '0.25rem' }}>
                   Save
                 </button>
@@ -154,7 +203,18 @@ function App() {
               </>
             ) : (
               <>
-                <span>{o.title}</span>
+                <div>
+                  <span style={{ fontWeight: 600 }}>{o.title}</span>
+
+                  <div style={{ fontSize: '0.85rem', color: '#555' }}>
+                    {o.tags?.length ? <span>Tags: {o.tags.join(', ')} · </span> : null}
+                    {o.mood ? <span>Mood: {o.mood} · </span> : null}
+                    {o.createdAt ? (
+                      <span>{new Date(o.createdAt).toLocaleDateString()}</span>
+                    ) : null}
+                  </div>
+                </div>
+
                 <div style={{ display: 'flex', gap: '0.25rem' }}>
                   <button onClick={() => startEdit(o)}>
                     Edit
