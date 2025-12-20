@@ -12,6 +12,7 @@ function OutfitsPage() {
   const [mood, setMood] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [search, setSearch] = useState('');
 
   const [editingId, setEditingId] = useState(null);
   const [editingTitle, setEditingTitle] = useState('');
@@ -145,6 +146,21 @@ function OutfitsPage() {
     }
   }
 
+  const normalizedSearch = search.toLowerCase();
+
+  const filteredOutfits = outfits.filter((o) => {
+      if (!normalizedSearch) return true;
+
+      const inTitle = o.title.toLowerCase().includes(normalizedSearch);
+      const inTags = Array.isArray(o.tags)
+        ? o.tags.some((tag) =>
+            tag.toLowerCase().includes(normalizedSearch)
+          )
+        : false;
+
+      return inTitle || inTags;
+    });
+
   return (
     <main style={{ maxWidth: 600, margin: '0 auto', padding: '1.5rem' }}>
       <header
@@ -166,6 +182,15 @@ function OutfitsPage() {
           )}
         </div>
         <button onClick={logout}>Log out</button>
+        <div style={{ marginBottom: '1rem' }}>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by title or tag..."
+            style={{ padding: '0.5rem', width: '100%' }}
+          />
+        </div>
+
       </header>
 
       <form onSubmit={handleSubmit} style={{ marginBottom: '1.5rem' }}>
@@ -196,7 +221,7 @@ function OutfitsPage() {
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
       <ul style={{ listStyle: 'none', padding: 0 }}>
-        {outfits.map((o) => (
+        {filteredOutfits.map((o) => (
           <li
             key={o.id}
             style={{
