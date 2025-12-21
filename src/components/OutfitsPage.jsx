@@ -13,11 +13,14 @@ function OutfitsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
 
   const [editingId, setEditingId] = useState(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [editingTagsInput, setEditingTagsInput] = useState('');
   const [editingMood, setEditingMood] = useState('');
+  const [editingImageUrl, setEditingImageUrl] = useState('');
+
 
   useEffect(() => {
     async function loadOutfits() {
@@ -60,7 +63,7 @@ function OutfitsPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ title: title.trim(), tags, mood }),
+        body: JSON.stringify({ title: title.trim(), tags, mood, imageUrl }),
       });
 
       if (!res.ok) throw new Error('Failed to create outfit');
@@ -101,6 +104,7 @@ function OutfitsPage() {
     setEditingTitle(outfit.title);
     setEditingTagsInput(outfit.tags?.join(', ') || '');
     setEditingMood(outfit.mood || '');
+    setEditingImageUrl(outfit.imageUrl || '');
     setError(null);
   }
 
@@ -132,6 +136,7 @@ function OutfitsPage() {
           title: editingTitle.trim(),
           tags,
           mood: editingMood,
+          imageUrl: editingImageUrl,
         }),
       });
 
@@ -212,6 +217,12 @@ function OutfitsPage() {
           placeholder="Mood (confident, cozy, etc.)"
           style={{ padding: '0.5rem', width: '100%', marginBottom: '0.5rem' }}
         />
+        <input
+          value={imageUrl}
+          onChange={(e) => setImageUrl(e.target.value)}
+          placeholder="Image URL (optional)"
+          style={{ padding: '0.5rem', width: '100%', marginBottom: '0.5rem' }}
+        />
         <button type="submit" style={{ padding: '0.5rem 1rem' }}>
           Add
         </button>
@@ -270,6 +281,17 @@ function OutfitsPage() {
                       padding: '0.25rem',
                     }}
                   />
+                  <input
+                    value={editingImageUrl}
+                    onChange={(e) => setEditingImageUrl(e.target.value)}
+                    placeholder="Image URL"
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      padding: '0.25rem',
+                      marginTop: '0.25rem',
+                    }}
+                  />
                 </div>
                 <button
                   onClick={() => handleSaveEdit(o.id)}
@@ -282,17 +304,32 @@ function OutfitsPage() {
             ) : (
               <>
                 <div>
-                  <span style={{ fontWeight: 600 }}>{o.title}</span>
-
                   <div style={{ fontSize: '0.85rem', color: '#555' }}>
+                    <span style={{ fontWeight: 600 }}>{o.title}</span>
+                    <br />
                     {o.tags?.length ? (
                       <span>Tags: {o.tags.join(', ')} · </span>
                     ) : null}
                     {o.mood ? <span>Mood: {o.mood} · </span> : null}
                     {o.createdAt ? (
-                      <span>{new Date(o.createdAt).toLocaleDateString()}</span>
+                      <span>
+                        {new Date(o.createdAt).toLocaleDateString()}
+                      </span>
                     ) : null}
                   </div>
+
+                  {o.imageUrl && (
+                    <img
+                      src={o.imageUrl}
+                      alt={o.title}
+                      style={{
+                        marginTop: '0.4rem',
+                        maxWidth: '100%',
+                        borderRadius: '6px',
+                        border: '1px solid #ddd',
+                      }}
+                    />
+                  )}
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.25rem' }}>
