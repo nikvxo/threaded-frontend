@@ -10,16 +10,17 @@ function OutfitsPage() {
   const [title, setTitle] = useState('');
   const [tagsInput, setTagsInput] = useState('');
   const [mood, setMood] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
 
   const [editingId, setEditingId] = useState(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [editingTagsInput, setEditingTagsInput] = useState('');
   const [editingMood, setEditingMood] = useState('');
   const [editingImageUrl, setEditingImageUrl] = useState('');
+  const [editingSelectedFile, setEditingSelectedFile] = useState(null);
 
 
   useEffect(() => {
@@ -49,37 +50,64 @@ function OutfitsPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim() || !selectedFile) {
+      setError('Title and image are required.');
+      return;
+    }
 
-    const tags = tagsInput
-      .split(',')
-      .map((t) => t.trim())
-      .filter(Boolean);
+    setError(null);
 
     try {
+      const formData = new FormData();
+      formData.append('image', selectedFile);
+
+      const uploadRes = await fetch(`${API_URL}/api/upload`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!uploadRes.ok) throw new Error('Image upload failed');
+      const uploadData = await uploadRes.json();
+      const newImageUrl = uploadData.imageUrl;
+
+      const tags = tagsInput
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
+
       const res = await fetch(`${API_URL}/api/outfits`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ title: title.trim(), tags, mood, imageUrl }),
+        body: JSON.stringify({ title: title.trim(), tags, mood, imageUrl: newImageUrl }),
       });
 
       if (!res.ok) throw new Error('Failed to create outfit');
 
       const newOutfit = await res.json();
       setOutfits((prev) => [newOutfit, ...prev]);
+      
+      // Reset form fields
       setTitle('');
       setTagsInput('');
       setMood('');
+      setSelectedFile(null);
+      // Also reset the file input visually
+      e.target.reset();
+
     } catch (err) {
       console.error(err);
-      setError('Could not create outfit');
+      setError(`Could not create outfit: ${err.message}`);
     }
   }
 
   async function handleDelete(id) {
+    // ... (no changes needed here)
     setError(null);
 
     try {
@@ -105,6 +133,8 @@ function OutfitsPage() {
     setEditingTagsInput(outfit.tags?.join(', ') || '');
     setEditingMood(outfit.mood || '');
     setEditingImageUrl(outfit.imageUrl || '');
+    // --- NEW: Reset the edit file state when starting a new edit ---
+    setEditingSelectedFile(null);
     setError(null);
   }
 
@@ -113,19 +143,40 @@ function OutfitsPage() {
     setEditingTitle('');
     setEditingTagsInput('');
     setEditingMood('');
+    // --- NEW: Reset the edit file state on cancel ---
+    setEditingSelectedFile(null);
   }
 
+  // --- MODIFIED: handleSaveEdit now handles optional file upload ---
   async function handleSaveEdit(id) {
     if (!editingTitle.trim()) return;
 
     setError(null);
 
-    const tags = editingTagsInput
-      .split(',')
-      .map((t) => t.trim())
-      .filter(Boolean);
-
     try {
+      let finalImageUrl = editingImageUrl;
+
+      // If a new file was selected during edit, upload it first
+      if (editingSelectedFile) {
+        const formData = new FormData();
+        formData.append('image', editingSelectedFile);
+
+        const uploadRes = await fetch(`${API_URL}/api/upload`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        });
+
+        if (!uploadRes.ok) throw new Error('New image upload failed');
+        const uploadData = await uploadRes.json();
+        finalImageUrl = uploadData.imageUrl; // Use the newly uploaded image URL
+      }
+
+      const tags = editingTagsInput
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
+
       const res = await fetch(`${API_URL}/api/outfits/${id}`, {
         method: 'PUT',
         headers: {
@@ -136,7 +187,7 @@ function OutfitsPage() {
           title: editingTitle.trim(),
           tags,
           mood: editingMood,
-          imageUrl: editingImageUrl,
+          imageUrl: finalImageUrl, // Use either the new or existing URL
         }),
       });
 
@@ -147,7 +198,7 @@ function OutfitsPage() {
       cancelEdit();
     } catch (err) {
       console.error(err);
-      setError('Could not update outfit');
+      setError(`Could not update outfit: ${err.message}`);
     }
   }
 
@@ -217,10 +268,11 @@ function OutfitsPage() {
           placeholder="Mood (confident, cozy, etc.)"
           style={{ padding: '0.5rem', width: '100%', marginBottom: '0.5rem' }}
         />
+        {/* --- MODIFIED: Changed to a file input --- */}
         <input
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
-          placeholder="Image URL (optional)"
+          type="file"
+          accept="image/png, image/jpeg, image/gif"
+          onChange={(e) => setSelectedFile(e.target.files[0])}
           style={{ padding: '0.5rem', width: '100%', marginBottom: '0.5rem' }}
         />
         <button type="submit" style={{ padding: '0.5rem 1rem' }}>
@@ -281,10 +333,12 @@ function OutfitsPage() {
                       padding: '0.25rem',
                     }}
                   />
+                  {/* --- NEW: File input for editing --- */}
+                  <label style={{fontSize: '0.8rem', display: 'block', marginTop: '0.5rem'}}>Replace image:</label>
                   <input
-                    value={editingImageUrl}
-                    onChange={(e) => setEditingImageUrl(e.target.value)}
-                    placeholder="Image URL"
+                    type="file"
+                    accept="image/png, image/jpeg, image/gif"
+                    onChange={(e) => setEditingSelectedFile(e.target.files[0])}
                     style={{
                       display: 'block',
                       width: '100%',
@@ -318,9 +372,10 @@ function OutfitsPage() {
                     ) : null}
                   </div>
 
+                  {/* --- MODIFIED: Use API_URL to build the full image source --- */}
                   {o.imageUrl && (
                     <img
-                      src={o.imageUrl}
+                      src={`${API_URL}${o.imageUrl}`}
                       alt={o.title}
                       style={{
                         marginTop: '0.4rem',

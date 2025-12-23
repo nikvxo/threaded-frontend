@@ -26,7 +26,7 @@ function AuthPanel() {
   }
 
   return (
-    <main style={{ maxWidth: 400, margin: '2rem auto', padding: '1.5rem' }}>
+    <main className="card">
       <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>FitPlanner</h1>
 
       <div style={{ marginBottom: '1rem' }}>
@@ -48,11 +48,6 @@ function AuthPanel() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Name"
-            style={{
-              padding: '0.5rem',
-              width: '100%',
-              marginBottom: '0.5rem',
-            }}
           />
         )}
 
@@ -61,11 +56,6 @@ function AuthPanel() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Email"
           type="email"
-          style={{
-            padding: '0.5rem',
-            width: '100%',
-            marginBottom: '0.5rem',
-          }}
         />
 
         <input
@@ -73,16 +63,11 @@ function AuthPanel() {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
           type="password"
-          style={{
-            padding: '0.5rem',
-            width: '100%',
-            marginBottom: '0.5rem',
-          }}
         />
 
         {error && <p style={{ color: 'red' }}>{error}</p>}
 
-        <button type="submit" style={{ padding: '0.5rem 1rem' }}>
+        <button type="submit">
           {mode === 'login' ? 'Login' : 'Create Account'}
         </button>
       </form>
