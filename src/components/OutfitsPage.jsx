@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react';
 import { API_URL } from '../config.js';
 import { useAuth } from '../hooks/useAuth.js';
+import './OutfitsPage.css';
+import ImageModal from './ImageModal.jsx';
 
 function OutfitsPage() {
   const { user, token, logout } = useAuth();
@@ -21,6 +23,8 @@ function OutfitsPage() {
   const [editingMood, setEditingMood] = useState('');
   const [editingImageUrl, setEditingImageUrl] = useState('');
   const [editingSelectedFile, setEditingSelectedFile] = useState(null);
+
+  const [modalImageUrl, setModalImageUrl] = useState(null);
 
 
   useEffect(() => {
@@ -218,185 +222,127 @@ function OutfitsPage() {
     });
 
   return (
-    <main style={{ maxWidth: 600, margin: '0 auto', padding: '1.5rem' }}>
-      <header
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1rem',
-        }}
-      >
-        <div>
-          <h1 style={{ fontSize: '2rem', marginBottom: '0.25rem' }}>
-            FitPlanner
-          </h1>
-          {user && (
-            <p style={{ fontSize: '0.9rem', color: '#555' }}>
-              Logged in as <strong>{user.email}</strong>
-            </p>
-          )}
-        </div>
-        <button onClick={logout}>Log out</button>
-        <div style={{ marginBottom: '1rem' }}>
+    <>
+      <main className="outfits-page">
+        <header>
+          <div>
+            <h1>FitPlanner</h1>
+            {user && <p>Logged in as <strong>{user.email}</strong></p>}
+          </div>
+          <button onClick={logout}>Log out</button>
+        </header>
+
+        <form onSubmit={handleSubmit} className="add-outfit-form">
+          <h2>Add New Outfit</h2>
           <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by title or tag..."
-            style={{ padding: '0.5rem', width: '100%' }}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Describe your outfit..."
           />
-        </div>
+          <input
+            value={tagsInput}
+            onChange={(e) => setTagsInput(e.target.value)}
+            placeholder="Tags (comma separated: casual, summer, date)"
+          />
+          <input
+            value={mood}
+            onChange={(e) => setMood(e.target.value)}
+            placeholder="Mood (confident, cozy, etc.)"
+          />
+          <input
+            type="file"
+            accept="image/png, image/jpeg, image/gif"
+            onChange={(e) => setSelectedFile(e.target.files[0])}
+          />
+          <button type="submit">Add</button>
+        </form>
 
-      </header>
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by title or tag..."
+          className="search-bar"
+        />
 
-      <form onSubmit={handleSubmit} style={{ marginBottom: '1.5rem' }}>
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Describe your outfit..."
-          style={{ padding: '0.5rem', width: '100%', marginBottom: '0.5rem' }}
-        />
-        <input
-          value={tagsInput}
-          onChange={(e) => setTagsInput(e.target.value)}
-          placeholder="Tags (comma separated: casual, summer, date)"
-          style={{ padding: '0.5rem', width: '100%', marginBottom: '0.5rem' }}
-        />
-        <input
-          value={mood}
-          onChange={(e) => setMood(e.target.value)}
-          placeholder="Mood (confident, cozy, etc.)"
-          style={{ padding: '0.5rem', width: '100%', marginBottom: '0.5rem' }}
-        />
-        {/* --- MODIFIED: Changed to a file input --- */}
-        <input
-          type="file"
-          accept="image/png, image/jpeg, image/gif"
-          onChange={(e) => setSelectedFile(e.target.files[0])}
-          style={{ padding: '0.5rem', width: '100%', marginBottom: '0.5rem' }}
-        />
-        <button type="submit" style={{ padding: '0.5rem 1rem' }}>
-          Add
-        </button>
-      </form>
+        {loading && <p>Loading outfits...</p>}
+        {error && <p style={{ color: 'red' }}>{error}</p>}
 
-      {loading && <p>Loading outfits...</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-
-      <ul style={{ listStyle: 'none', padding: 0 }}>
-        {filteredOutfits.map((o) => (
-          <li
-            key={o.id}
-            style={{
-              padding: '0.75rem 1rem',
-              border: '1px solid #ddd',
-              borderRadius: '6px',
-              marginBottom: '0.5rem',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: '0.5rem',
-            }}
-          >
-            {editingId === o.id ? (
-              <>
-                <div style={{ flex: 1 }}>
+        <div className="outfits-grid">
+          {filteredOutfits.map((o) => (
+            <div key={o.id} className="outfit-card">
+              {editingId === o.id ? (
+                <div className="edit-outfit-form">
+                  <h2>Edit Outfit</h2>
+                  <img src={`${API_URL}${editingImageUrl}`} alt={editingTitle} />
                   <input
                     value={editingTitle}
                     onChange={(e) => setEditingTitle(e.target.value)}
                     placeholder="Title"
-                    style={{
-                      display: 'block',
-                      width: '100%',
-                      padding: '0.25rem',
-                      marginBottom: '0.25rem',
-                    }}
                   />
                   <input
                     value={editingTagsInput}
                     onChange={(e) => setEditingTagsInput(e.target.value)}
                     placeholder="Tags (comma separated)"
-                    style={{
-                      display: 'block',
-                      width: '100%',
-                      padding: '0.25rem',
-                      marginBottom: '0.25rem',
-                    }}
                   />
                   <input
                     value={editingMood}
                     onChange={(e) => setEditingMood(e.target.value)}
                     placeholder="Mood"
-                    style={{
-                      display: 'block',
-                      width: '100%',
-                      padding: '0.25rem',
-                    }}
                   />
-                  {/* --- NEW: File input for editing --- */}
-                  <label style={{fontSize: '0.8rem', display: 'block', marginTop: '0.5rem'}}>Replace image:</label>
+                  <label>Replace image:</label>
                   <input
                     type="file"
                     accept="image/png, image/jpeg, image/gif"
                     onChange={(e) => setEditingSelectedFile(e.target.files[0])}
-                    style={{
-                      display: 'block',
-                      width: '100%',
-                      padding: '0.25rem',
-                      marginTop: '0.25rem',
-                    }}
                   />
-                </div>
-                <button
-                  onClick={() => handleSaveEdit(o.id)}
-                  style={{ marginRight: '0.25rem' }}
-                >
-                  Save
-                </button>
-                <button onClick={cancelEdit}>Cancel</button>
-              </>
-            ) : (
-              <>
-                <div>
-                  <div style={{ fontSize: '0.85rem', color: '#555' }}>
-                    <span style={{ fontWeight: 600 }}>{o.title}</span>
-                    <br />
-                    {o.tags?.length ? (
-                      <span>Tags: {o.tags.join(', ')} · </span>
-                    ) : null}
-                    {o.mood ? <span>Mood: {o.mood} · </span> : null}
-                    {o.createdAt ? (
-                      <span>
-                        {new Date(o.createdAt).toLocaleDateString()}
-                      </span>
-                    ) : null}
+                  <div className="outfit-card-actions">
+                    <button onClick={() => handleSaveEdit(o.id)}>Save</button>
+                    <button onClick={cancelEdit}>Cancel</button>
                   </div>
-
-                  {/* --- MODIFIED: Use API_URL to build the full image source --- */}
-                  {o.imageUrl && (
-                    <img
-                      src={`${API_URL}${o.imageUrl}`}
-                      alt={o.title}
-                      style={{
-                        marginTop: '0.4rem',
-                        maxWidth: '100%',
-                        borderRadius: '6px',
-                        border: '1px solid #ddd',
-                      }}
-                    />
-                  )}
                 </div>
-
-                <div style={{ display: 'flex', gap: '0.25rem' }}>
-                  <button onClick={() => startEdit(o)}>Edit</button>
-                  <button onClick={() => handleDelete(o.id)}>Delete</button>
-                </div>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
-    </main>
+              ) : (
+                <>
+                  <img
+                    src={`${API_URL}${o.imageUrl}`}
+                    alt={o.title}
+                    onClick={() => setModalImageUrl(`${API_URL}${o.imageUrl}`)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <div className="outfit-card-content">
+                    <h3>{o.title}</h3>
+                    <p>
+                      {o.mood && <span>Mood: {o.mood}</span>}
+                      {o.createdAt && (
+                        <span>
+                          {' '}
+                          · {new Date(o.createdAt).toLocaleDateString()}
+                        </span>
+                      )}
+                    </p>
+                    {o.tags?.length > 0 && (
+                      <div className="outfit-card-tags">
+                        {o.tags.map((tag) => (
+                          <span key={tag}>{tag}</span>
+                        ))}
+                      </div>
+                    )}
+                    <div className="outfit-card-actions">
+                      <button onClick={() => startEdit(o)}>Edit</button>
+                      <button onClick={() => handleDelete(o.id)}>Delete</button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      </main>
+      <ImageModal
+        imageUrl={modalImageUrl}
+        alt="Full size outfit"
+        onClose={() => setModalImageUrl(null)}
+      />
+    </>
   );
 }
 

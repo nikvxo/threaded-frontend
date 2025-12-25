@@ -1,6 +1,7 @@
 // src/components/AuthPanel.jsx
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth.js';
+import './AuthPanel.css';
 
 function AuthPanel() {
   const { login, register } = useAuth();
@@ -26,28 +27,33 @@ function AuthPanel() {
   }
 
   return (
-    <main className="card">
-      <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>FitPlanner</h1>
+    <main className="auth-panel">
+      <h1>FitPlanner</h1>
 
-      <div style={{ marginBottom: '1rem' }}>
+      <div className="auth-mode-selector">
         <button
           type="button"
           onClick={() => setMode('login')}
-          style={{ marginRight: '0.5rem' }}
+          className={mode === 'login' ? 'active' : ''}
         >
           Login
         </button>
-        <button type="button" onClick={() => setMode('register')}>
+        <button
+          type="button"
+          onClick={() => setMode('register')}
+          className={mode === 'register' ? 'active' : ''}
+        >
           Register
         </button>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="auth-form">
         {mode === 'register' && (
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Name"
+            required
           />
         )}
 
@@ -56,6 +62,7 @@ function AuthPanel() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Email"
           type="email"
+          required
         />
 
         <input
@@ -63,9 +70,10 @@ function AuthPanel() {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
           type="password"
+          required
         />
 
-        {error && <p style={{ color: 'red' }}>{error}</p>}
+        {error && <p className="auth-error">{error}</p>}
 
         <button type="submit">
           {mode === 'login' ? 'Login' : 'Create Account'}

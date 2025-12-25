@@ -1,0 +1,114 @@
+/* src/components/OutfitsPage.css */
+.outfits-page {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.outfits-page header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #d1c4b3;
+}
+
+.outfits-page h1 {
+  font-size: 2rem;
+  margin: 0;
+}
+
+.outfits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.outfit-card {
+  background-color: #eaddc7;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #d1c4b3;
+}
+
+.outfit-card img {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+}
+
+.outfit-card-content {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-grow: 1;
+}
+
+.outfit-card-content h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #4a3c31;
+}
+
+.outfit-card-content p {
+  margin: 0;
+  color: #5f564d;
+}
+
+.outfit-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.outfit-card-tags span {
+  background-color: #d97706;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+}
+
+.outfit-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+.add-outfit-form, .edit-outfit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  background-color: #eaddc7;
+  border-radius: 12px;
+  border: 1px solid #d1c4b3;
+  margin-bottom: 2rem;
+}
+
+.add-outfit-form h2, .edit-outfit-form h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  color: #4a3c31;
+}
+
+.edit-outfit-form input, .edit-outfit-form select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.search-bar {
+  margin-bottom: 1.5rem;
+  width: 100%;
+  max-width: 400px;
+}
