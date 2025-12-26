@@ -1,5 +1,6 @@
 // src/pages/OutfitsPage.jsx
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../config.js';
 import { useAuth } from '../hooks/useAuth.js';
 import './OutfitsPage.css';
@@ -7,20 +8,24 @@ import ImageModal from '../components/ImageModal.jsx';
 
 function OutfitsPage() {
   const { user, token, logout } = useAuth();
+  const navigate = useNavigate();
 
   const [outfits, setOutfits] = useState([]);
   const [title, setTitle] = useState('');
   const [itemsInput, setItemsInput] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
+  const [wornOn, setWornOn] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const [editingId, setEditingId] = useState(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [editingItemsInput, setEditingItemsInput] = useState('');
   const [editingImageUrl, setEditingImageUrl] = useState('');
   const [editingSelectedFile, setEditingSelectedFile] = useState(null);
+  const [editingWornOn, setEditingWornOn] = useState('');
 
   const [modalImageUrl, setModalImageUrl] = useState(null);
 
@@ -58,6 +63,7 @@ function OutfitsPage() {
     }
 
     setError(null);
+    setSubmitting(true);
 
     try {
       const formData = new FormData();
@@ -90,6 +96,7 @@ function OutfitsPage() {
           title: title.trim(),
           itemNames,
           imageUrl: newImageUrl,
+          wornOn: wornOn ? `${wornOn}T12:00:00.000Z` : new Date().toISOString(),
         }),
       });
 
@@ -102,12 +109,15 @@ function OutfitsPage() {
       setTitle('');
       setItemsInput('');
       setSelectedFile(null);
+      setWornOn('');
       // Also reset the file input visually
       e.target.reset();
 
     } catch (err) {
       console.error(err);
       setError(`Could not create outfit: ${err.message}`);
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -137,6 +147,7 @@ function OutfitsPage() {
     setEditingItemsInput(outfit.items?.map(item => item.name).join(', ') || '');
     setEditingImageUrl(outfit.imageUrl || '');
     setEditingSelectedFile(null);
+    setEditingWornOn(outfit.wornOn ? new Date(outfit.wornOn).toISOString().split('T')[0] : '');
     setError(null);
   }
 
@@ -145,6 +156,7 @@ function OutfitsPage() {
     setEditingTitle('');
     setEditingItemsInput('');
     setEditingSelectedFile(null);
+    setEditingWornOn('');
   }
 
   async function handleSaveEdit(id) {
@@ -185,6 +197,7 @@ function OutfitsPage() {
           title: editingTitle.trim(),
           itemNames,
           imageUrl: finalImageUrl,
+          wornOn: editingWornOn ? `${editingWornOn}T12:00:00.000Z` : undefined,
         }),
       });
 
@@ -222,7 +235,10 @@ function OutfitsPage() {
             <h1>Threaded!</h1>
             {user && <p>Logged in as <strong>{user.email}</strong></p>}
           </div>
-          <button onClick={logout}>Log out</button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button onClick={() => navigate('/closet')}>View Closet</button>
+            <button onClick={logout}>Log out</button>
+          </div>
         </header>
 
         <form onSubmit={handleSubmit} className="add-outfit-form">
@@ -238,11 +254,19 @@ function OutfitsPage() {
             placeholder="Clothing items (comma separated: blue jeans, white t-shirt)"
           />
           <input
+            type="date"
+            value={wornOn}
+            onChange={(e) => setWornOn(e.target.value)}
+            placeholder="Date worn"
+          />
+          <input
             type="file"
             accept="image/png, image/jpeg, image/gif"
             onChange={(e) => setSelectedFile(e.target.files[0])}
           />
-          <button type="submit">Add</button>
+          <button type="submit" disabled={submitting}>
+            {submitting ? 'Adding...' : 'Add Outfit'}
+          </button>
         </form>
 
         <input
@@ -252,8 +276,31 @@ function OutfitsPage() {
           className="search-bar"
         />
 
-        {loading && <p>Loading outfits...</p>}
-        {error && <p style={{ color: 'red' }}>{error}</p>}
+        {loading && (
+          <div className="loading-state">
+            <p>Loading your outfits...</p>
+          </div>
+        )}
+        
+        {error && (
+          <div className="error-state">
+            <strong>⚠️ Error:</strong> {error}
+          </div>
+        )}
+
+        {!loading && !error && filteredOutfits.length === 0 && outfits.length === 0 && (
+          <div className="empty-state">
+            <h2>No outfits yet!</h2>
+            <p>Start building your digital wardrobe by adding your first outfit above.</p>
+          </div>
+        )}
+
+        {!loading && !error && filteredOutfits.length === 0 && outfits.length > 0 && (
+          <div className="empty-state">
+            <h2>No matches found</h2>
+            <p>Try a different search term.</p>
+          </div>
+        )}
 
         <div className="outfits-grid">
           {filteredOutfits.map((o) => (
@@ -271,6 +318,12 @@ function OutfitsPage() {
                     value={editingItemsInput}
                     onChange={(e) => setEditingItemsInput(e.target.value)}
                     placeholder="Clothing items (comma separated)"
+                  />
+                  <input
+                    type="date"
+                    value={editingWornOn}
+                    onChange={(e) => setEditingWornOn(e.target.value)}
+                    placeholder="Date worn"
                   />
                   <label>Replace image:</label>
                   <input

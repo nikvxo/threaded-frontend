@@ -57,35 +57,58 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #d97706; /* Burnt Orange */
+  background-color: #d97706;
   color: #ffffff;
   cursor: pointer;
-  transition: background-color 0.25s;
-}
-button:hover {
-  background-color: #b45309; /* Darker Burnt Orange */
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  transition: all 0.2s ease;
 }
 
-input {
+button:hover:not(:disabled) {
+  background-color: #b45309;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+button:focus,
+button:focus-visible {
+  outline: 3px solid rgba(217, 119, 6, 0.5);
+  outline-offset: 2px;
+}
+
+input,
+textarea {
   border-radius: 8px;
-  border: 1px solid #a39a8e; /* Soft brown border */
+  border: 2px solid #d1c4b3;
   padding: 0.6em 1.2em;
   font-size: 1em;
-  font-weight: 500;
+  font-weight: 400;
   font-family: inherit;
   background-color: #fff;
   color: #3c3636;
-  transition: border-color 0.25s;
+  transition: all 0.2s ease;
   margin-bottom: 1rem;
 }
 
-input:focus {
+input:focus,
+textarea:focus {
   outline: none;
-  border-color: #d97706; /* Burnt Orange focus */
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #a39a8e;
 }
 
 .card {
