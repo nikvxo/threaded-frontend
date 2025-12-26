@@ -1,10 +1,12 @@
-// src/components/AuthPanel.jsx
+// src/pages/LoginPage.jsx
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth.js';
-import './AuthPanel.css';
+import { useNavigate } from 'react-router-dom';
+import '../components/AuthPanel.css';
 
-function AuthPanel() {
+function LoginPage() {
   const { login, register } = useAuth();
+  const navigate = useNavigate();
   const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
@@ -21,6 +23,8 @@ function AuthPanel() {
       } else {
         await register({ email, password, name });
       }
+      // Redirect to outfits page after successful login/register
+      navigate('/outfits');
     } catch (err) {
       setError(err.message || 'Something went wrong');
     }
@@ -28,7 +32,7 @@ function AuthPanel() {
 
   return (
     <main className="auth-panel">
-      <h1>FitPlanner</h1>
+      <h1>Threaded</h1>
 
       <div className="auth-mode-selector">
         <button
@@ -83,4 +87,4 @@ function AuthPanel() {
   );
 }
 
-export default AuthPanel;
+export default LoginPage;

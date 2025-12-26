@@ -1,20 +1,21 @@
 // src/App.jsx
-import AuthPanel from './components/AuthPanel.jsx';
-import OutfitsPage from './components/OutfitsPage.jsx';
-import { useAuth } from './hooks/useAuth.js';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import HomePage from './pages/HomePage.jsx';
+import LoginPage from './pages/LoginPage.jsx';
+import OutfitsPage from './pages/OutfitsPage.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 function App() {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <p style={{ textAlign: 'center', marginTop: '2rem' }}>
-        Loading...
-      </p>
-    );
-  }
-
-  return isAuthenticated ? <OutfitsPage /> : <AuthPanel />;
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route element={<ProtectedRoute />}>
+        <Route path="/outfits" element={<OutfitsPage />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 }
 
 export default App;
