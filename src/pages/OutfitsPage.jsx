@@ -308,7 +308,7 @@ function OutfitsPage() {
               {editingId === o.id ? (
                 <div className="edit-outfit-form">
                   <h2>Edit Outfit</h2>
-                  <img src={`${API_URL}${editingImageUrl}`} alt={editingTitle} />
+                  <img src={editingImageUrl} alt={editingTitle} />
                   <input
                     value={editingTitle}
                     onChange={(e) => setEditingTitle(e.target.value)}
@@ -339,9 +339,9 @@ function OutfitsPage() {
               ) : (
                 <>
                   <img
-                    src={`${API_URL}${o.imageUrl}`}
+                    src={o.imageUrl}
                     alt={o.title}
-                    onClick={() => setModalImageUrl(`${API_URL}${o.imageUrl}`)}
+                    onClick={() => setModalImageUrl(o.imageUrl)}
                     style={{ cursor: 'pointer' }}
                   />
                   <div className="outfit-card-content">

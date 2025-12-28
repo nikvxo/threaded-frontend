@@ -1,16 +1,41 @@
-# React + Vite
+# FitPlanner - Virtual Wardrobe Manager
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack web application for tracking outfits and managing your virtual closet.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Outfit Management**: Create, edit, and delete outfit entries with photos
+- **Virtual Closet**: Automatically builds a closet from your outfit items
+- **Usage Tracking**: See how often you wear each clothing item
+- **Search & Filter**: Find outfits by title or clothing items
+- **Image Upload**: AWS S3 integration for photo storage
+- **Authentication**: Secure JWT-based user authentication
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+**Frontend:**
+- React 19 with Vite
+- React Router for navigation
+- Context API for state management
 
-## Expanding the ESLint configuration
+**Backend:**
+- Node.js + Express
+- PostgreSQL database with Prisma ORM
+- AWS S3 for image storage
+- JWT authentication
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Setup
+
+```bash
+npm install
+npm run dev
+```
+
+Set environment variable:
+```
+VITE_API_URL=http://localhost:3000
+```
+
+## Live Demo
+
+🔗 [View Live Application](your-deployed-url-here)
