@@ -191,7 +191,7 @@ function ClosetPage() {
           <div className="outfits-grid">
             {itemOutfits.map((outfit) => (
               <div key={outfit.id} className="outfit-card">
-                <img src={`${API_URL}${outfit.imageUrl}`} alt={outfit.title} />
+                <img src={outfit.imageUrl} alt={outfit.title} />
                 <div className="outfit-card-content">
                   <h3>{outfit.title}</h3>
                   <p className="date">
