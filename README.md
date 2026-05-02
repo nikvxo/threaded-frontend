@@ -1,4 +1,4 @@
-# FitPlanner - Virtual Wardrobe Manager
+# Threaded - Virtual Wardrobe Manager
 
 A full-stack web application for tracking outfits and managing your virtual closet.
 
