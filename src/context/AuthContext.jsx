@@ -4,7 +4,7 @@ import { AuthContext } from './AuthContextInstance.js';
 import { API_URL } from '../config.js'
 
 function getInitialAuth() {
-  const raw = localStorage.getItem('fitplanner_auth');
+  const raw = localStorage.getItem('threaded_auth');
   if (!raw) return { user: null, token: null };
 
   try {
@@ -14,7 +14,7 @@ function getInitialAuth() {
       token: parsed.token ?? null,
     };
   } catch {
-    localStorage.removeItem('fitplanner_auth');
+    localStorage.removeItem('threaded_auth');
     return { user: null, token: null };
   }
 }
@@ -25,7 +25,7 @@ export function AuthProvider({ children }) {
   function saveAuth(user, token) {
     const next = { user, token };
     setAuth(next);
-    localStorage.setItem('fitplanner_auth', JSON.stringify(next));
+    localStorage.setItem('threaded_auth', JSON.stringify(next));
   }
 
   async function register({ email, password, name }) {
@@ -54,7 +54,7 @@ export function AuthProvider({ children }) {
 
   function logout() {
     setAuth({ user: null, token: null });
-    localStorage.removeItem('fitplanner_auth');
+    localStorage.removeItem('threaded_auth');
   }
 
   return (

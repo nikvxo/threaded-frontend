@@ -1,5 +1,5 @@
-import { render, screen} from '@testing-library/react';
-import { describe, expect, it, beforeEach } from 'vitest'; 
+import { render, screen, cleanup} from '@testing-library/react';
+import { describe, expect, it, beforeEach, afterEach } from 'vitest'; 
 import { AuthProvider } from './AuthContext.jsx';
 import { useAuth } from '../hooks/useAuth.js'; 
 
@@ -16,21 +16,59 @@ function AuthConsumer() {
     );
 }
 
-//mocking empty localStorage 
+//mocking empty localStorage for testing 
 describe('AuthProvider', () => {
     beforeEach(() => {
     localStorage.clear();
 });
-//test that state is Logged out when localStorage is empty 
-it('initializes with logged out when storage empty', () => {
-    render(
-        <AuthProvider>
-            <AuthConsumer />
-        </AuthProvider>
-    );
-
-    expect(screen.getByTestId('user')).toHaveTextContent('null');
-    expect(screen.getByTestId('token')).toHaveTextContent('null'); 
-    expect(screen.getByTestId('authenticated')).toHaveTextContent('false'); 
+    afterEach(() => {
+        cleanup();
     });
-})
+//test that state is Logged out when localStorage is empty 
+    it('initializes with logged out when storage empty', () => {
+        render(
+            <AuthProvider>
+                <AuthConsumer />
+            </AuthProvider>
+        );
+
+        expect(screen.getByTestId('user')).toHaveTextContent('null');
+        expect(screen.getByTestId('token')).toHaveTextContent('null'); 
+        expect(screen.getByTestId('authenticated')).toHaveTextContent('false'); 
+        });
+
+    it('initializes with information from localStorage, non null values', () => {
+        const storedAuth = {
+            user: { id: 1, email: 'test@example.com' },
+            token: 'token-abc-123', 
+        }; 
+
+        localStorage.setItem('threaded_auth', JSON.stringify(storedAuth));
+
+        render(
+            <AuthProvider>
+                <AuthConsumer />
+            </AuthProvider>
+        );
+
+        expect(screen.getByTestId('user')).toHaveTextContent('test@example.com'); 
+        expect(screen.getByTestId('token')).toHaveTextContent('token-abc-123');
+        expect(screen.getByTestId('authenticated')).toHaveTextContent('true');
+        });
+    
+    it('initalizes with null values if localStorage auth is invalid', () => {
+        localStorage.setItem('threaded_auth', '{this is invalid json {{{');
+        
+        render(
+            <AuthProvider>
+                <AuthConsumer />
+            </AuthProvider>
+        );
+
+        expect(screen.getByTestId('user')).toHaveTextContent('null');
+        expect(screen.getByTestId('token')).toHaveTextContent('null');
+        expect(screen.getByTestId('authenticated')).toHaveTextContent('false');
+
+        expect(localStorage.getItem('threaded_auth')).toBeNull();
+    })
+});
