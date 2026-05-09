@@ -36,7 +36,7 @@ VITE_API_URL=http://localhost:3000
 
 ## Live Demo
 
-🔗 Link to the first non-unique section: [Fitted](https://threaded-seven.vercel.app/).
+🔗 Live Link to the Application: [Threaded](https://threaded-seven.vercel.app/).
 
 
 
