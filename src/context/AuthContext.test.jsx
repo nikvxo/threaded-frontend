@@ -1,7 +1,8 @@
-import { render, screen, cleanup, waitFor} from '@testing-library/react';
-import { describe, expect, it, beforeEach, afterEach } from 'vitest'; 
+import { render, renderHook, screen, cleanup, waitFor} from '@testing-library/react';
+import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest'; 
 import { AuthProvider } from './AuthContext.jsx';
 import { useAuth } from '../hooks/useAuth.js'; 
+import { API_URL } from '../config.js';
 
 
 // create a component that uses useAuth to expose auth values as text in DOM 
@@ -123,5 +124,85 @@ describe('AuthProvider logout', () => {
         expect(screen.getByTestId('authenticated')).toHaveTextContent('false');
         expect(localStorage.getItem('threaded_auth')).toBeNull();
     });
+  });
+});
+
+const originalFetch = globalThis.fetch;
+
+function renderAuthHook() {
+  return renderHook(() => useAuth(), {
+    wrapper: ({ children }) => <AuthProvider>{children}</AuthProvider>,
+  });
+}
+
+describe('AuthProvider login', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    globalThis.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    cleanup();
+    globalThis.fetch = originalFetch;
+  });
+
+  it('stores auth and updates context when login succeeds', async () => {
+    const user = { id: 1, email: 'test@example.com' };
+    const token = 'token-abc-123';
+
+    globalThis.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ user, token }),
+    });
+
+    const { result } = renderAuthHook();
+
+    await result.current.login({
+      email: 'test@example.com',
+      password: 'password123',
+    });
+
+    await waitFor(() => {
+      expect(result.current.isAuthenticated).toBe(true);
+      expect(result.current.user).toEqual(user);
+      expect(result.current.token).toBe(token);
+    });
+
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      `${API_URL}/api/auth/login`,
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'test@example.com',
+          password: 'password123',
+        }),
+      })
+    );
+
+    expect(localStorage.getItem('threaded_auth')).toBe(
+      JSON.stringify({ user, token })
+    );
+  });
+
+  it('throws and does not store auth when login fails', async () => {
+    globalThis.fetch.mockResolvedValue({
+      ok: false,
+      json: async () => ({ error: 'Invalid credentials' }),
+    });
+
+    const { result } = renderAuthHook();
+
+    await expect(
+      result.current.login({
+        email: 'test@example.com',
+        password: 'wrong-password',
+      })
+    ).rejects.toThrow('Invalid credentials');
+
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(result.current.user).toBeNull();
+    expect(result.current.token).toBeNull();
+    expect(localStorage.getItem('threaded_auth')).toBeNull();
   });
 });
