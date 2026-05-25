@@ -1,7 +1,6 @@
-// src/context/AuthContext.jsx
 import { useState } from 'react';
 import { AuthContext } from './AuthContextInstance.js';
-import { API_URL } from '../config.js'
+import { apiRequest, ApiError } from '../lib/api.js';
 
 function getInitialAuth() {
   const raw = localStorage.getItem('threaded_auth');
@@ -29,27 +28,31 @@ export function AuthProvider({ children }) {
   }
 
   async function register({ email, password, name }) {
-    const res = await fetch(`${API_URL}/api/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, name }),
-    });
+    try {
+      const data = await apiRequest('/api/auth/register', {
+        method: 'POST',
+        body: { email, password, name },
+      });
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to register');
-    saveAuth(data.user, data.token);
+      saveAuth(data.user, data.token);
+    } catch (error) {
+      if (error instanceof ApiError) throw new Error(error.message);
+      throw error;
+    }
   }
 
   async function login({ email, password }) {
-    const res = await fetch(`${API_URL}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const data = await apiRequest('/api/auth/login', {
+        method: 'POST',
+        body: { email, password },
+      });
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to login');
-    saveAuth(data.user, data.token);
+      saveAuth(data.user, data.token);
+    } catch (error) {
+      if (error instanceof ApiError) throw new Error(error.message);
+      throw error;
+    }
   }
 
   function logout() {
