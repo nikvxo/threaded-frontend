@@ -10,8 +10,9 @@ export class ApiError extends Error {
 }
 
 async function parseResponse(res) {
-  const contentType = res.headers.get('content-type') || '';
-  const isJson = contentType.includes('application/json');
+  const contentType = (res.headers && typeof res.headers.get === 'function' && res.headers.get('content-type')) || '';
+  const hasJsonMethod = res && typeof res.json === 'function';
+  const isJson = contentType.includes('application/json') || hasJsonMethod;
   const data = isJson ? await res.json() : await res.text();
 
   if (!res.ok) {
@@ -29,10 +30,10 @@ async function parseResponse(res) {
 
 export async function apiRequest(path, options = {}) {
   const { token, body, headers, ...rest } = options;
-  const requestHeaders = new Headers(headers || {});
+  const requestHeaders = { ...(headers || {}) };
 
   if (token) {
-    requestHeaders.set('Authorization', `Bearer ${token}`);
+    requestHeaders['Authorization'] = `Bearer ${token}`;
   }
 
   let requestBody = body;
@@ -40,7 +41,7 @@ export async function apiRequest(path, options = {}) {
   if (body instanceof FormData) {
     requestBody = body;
   } else if (body !== undefined && body !== null && typeof body === 'object') {
-    requestHeaders.set('Content-Type', 'application/json');
+    requestHeaders['Content-Type'] = 'application/json';
     requestBody = JSON.stringify(body);
   }
 
