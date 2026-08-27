@@ -128,4 +128,25 @@ describe('ClosetPage', () => {
     expect(screen.getByRole('heading', { name: 'Casual Friday' })).toBeInTheDocument();
     expect(screen.getByText('1 outfit found')).toBeInTheDocument();
   });
+
+  it('shows the empty state when the closet has no items', async () => {
+    globalThis.fetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],
+      });
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Your closet is empty!' })).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('Add outfits to automatically build your virtual closet.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add Your First Outfit' })).toBeInTheDocument();
+  });
 });
