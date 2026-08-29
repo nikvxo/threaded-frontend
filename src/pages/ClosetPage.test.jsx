@@ -149,4 +149,36 @@ describe('ClosetPage', () => {
     expect(screen.getByText('Add outfits to automatically build your virtual closet.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Add Your First Outfit' })).toBeInTheDocument();
   });
+
+  it('removes a closet item when delete is confirmed', async () => {
+    globalThis.confirm.mockReturnValue(true);
+
+    globalThis.fetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [{ id: 10, name: 'White T-Shirt' }],
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],
+      });
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByText('White T-Shirt')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTitle('Delete item'));
+
+    await waitFor(() => {
+      expect(screen.queryByText('White T-Shirt')).not.toBeInTheDocument();
+    });
+
+    expect(globalThis.confirm).toHaveBeenCalledWith('Delete this item from your closet?');
+  });
 });
