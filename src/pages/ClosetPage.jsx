@@ -1,7 +1,7 @@
 // src/pages/ClosetPage.jsx
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_URL } from '../config.js';
+import { apiRequest } from '../lib/api.js';
 import { useAuth } from '../hooks/useAuth.js';
 import './ClosetPage.css';
 
@@ -19,22 +19,10 @@ function ClosetPage() {
       try {
         setError(null);
         
-        // Fetch both clothing items and outfits
-        const [clothingRes, outfitsRes] = await Promise.all([
-          fetch(`${API_URL}/api/clothing`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${API_URL}/api/outfits`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
+        const [clothingItems, outfits] = await Promise.all([
+          apiRequest('/api/clothing', { token }),
+          apiRequest('/api/outfits', { token }),
         ]);
-        
-        if (!clothingRes.ok || !outfitsRes.ok) {
-          throw new Error('Failed to load closet');
-        }
-        
-        const clothingItems = await clothingRes.json();
-        const outfits = await outfitsRes.json();
         
         // Calculate usage count for each item
         const itemsWithUsage = clothingItems.map(item => {
@@ -66,13 +54,7 @@ function ClosetPage() {
     setSelectedItem(item);
     try {
       // Fetch all outfits and filter by this clothing item
-      const res = await fetch(`${API_URL}/api/outfits`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!res.ok) throw new Error('Failed to load outfits');
-      const allOutfits = await res.json();
+      const allOutfits = await apiRequest('/api/outfits', { token });
       
       // Filter outfits that contain this item
       const filtered = allOutfits.filter(outfit => 
@@ -90,14 +72,10 @@ function ClosetPage() {
     if (!confirm('Delete this item from your closet?')) return;
     
     try {
-      const res = await fetch(`${API_URL}/api/clothing/${itemId}`, {
+      await apiRequest(`/api/clothing/${itemId}`, {
+        token,
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
-      
-      if (!res.ok) throw new Error('Failed to delete item');
       
       // Remove from state
       setItems(prev => prev.filter(item => item.id !== itemId));

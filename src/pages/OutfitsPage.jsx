@@ -1,7 +1,7 @@
 // src/pages/OutfitsPage.jsx
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_URL } from '../config.js';
+import { apiRequest } from '../lib/api.js';
 import { useAuth } from '../hooks/useAuth.js';
 import './OutfitsPage.css';
 import ImageModal from '../components/ImageModal.jsx';
@@ -34,13 +34,7 @@ function OutfitsPage() {
     async function loadOutfits() {
       try {
         setError(null);
-        const res = await fetch(`${API_URL}/api/outfits`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (!res.ok) throw new Error('Failed to load outfits');
-        const data = await res.json();
+        const data = await apiRequest('/api/outfits', { token });
         setOutfits(data);
       } catch (err) {
         console.error(err);
@@ -69,16 +63,11 @@ function OutfitsPage() {
       const formData = new FormData();
       formData.append('image', selectedFile);
 
-      const uploadRes = await fetch(`${API_URL}/api/upload`, {
+      const uploadData = await apiRequest('/api/upload', {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        token,
         body: formData,
       });
-
-      if (!uploadRes.ok) throw new Error('Image upload failed');
-      const uploadData = await uploadRes.json();
       const newImageUrl = uploadData.imageUrl;
 
       const itemNames = itemsInput
@@ -86,23 +75,16 @@ function OutfitsPage() {
         .map((t) => t.trim())
         .filter(Boolean);
 
-      const res = await fetch(`${API_URL}/api/outfits`, {
+      const newOutfit = await apiRequest('/api/outfits', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+        token,
+        body: {
           title: title.trim(),
           itemNames,
           imageUrl: newImageUrl,
           wornOn: wornOn ? `${wornOn}T12:00:00.000Z` : new Date().toISOString(),
-        }),
+        },
       });
-
-      if (!res.ok) throw new Error('Failed to create outfit');
-
-      const newOutfit = await res.json();
       setOutfits((prev) => [newOutfit, ...prev]);
       
       // Reset form fields
@@ -125,14 +107,10 @@ function OutfitsPage() {
     setError(null);
 
     try {
-      const res = await fetch(`${API_URL}/api/outfits/${id}`, {
+      await apiRequest(`/api/outfits/${id}`, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        token,
       });
-
-      if (!res.ok) throw new Error('Failed to delete outfit');
 
       setOutfits((prev) => prev.filter((o) => o.id !== id));
     } catch (err) {
@@ -171,14 +149,11 @@ function OutfitsPage() {
         const formData = new FormData();
         formData.append('image', editingSelectedFile);
 
-        const uploadRes = await fetch(`${API_URL}/api/upload`, {
+        const uploadData = await apiRequest('/api/upload', {
           method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
+          token,
           body: formData,
         });
-
-        if (!uploadRes.ok) throw new Error('New image upload failed');
-        const uploadData = await uploadRes.json();
         finalImageUrl = uploadData.imageUrl;
       }
 
@@ -187,23 +162,16 @@ function OutfitsPage() {
         .map((t) => t.trim())
         .filter(Boolean);
 
-      const res = await fetch(`${API_URL}/api/outfits/${id}`, {
+      const updated = await apiRequest(`/api/outfits/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+        token,
+        body: {
           title: editingTitle.trim(),
           itemNames,
           imageUrl: finalImageUrl,
           wornOn: editingWornOn ? `${editingWornOn}T12:00:00.000Z` : undefined,
-        }),
+        },
       });
-
-      if (!res.ok) throw new Error('Failed to update outfit');
-
-      const updated = await res.json();
       setOutfits((prev) => prev.map((o) => (o.id === id ? updated : o)));
       cancelEdit();
     } catch (err) {
