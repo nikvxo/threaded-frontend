@@ -108,4 +108,41 @@ describe('OutfitsPage', () => {
 
     expect(screen.queryByRole('heading', { name: 'Work Uniform' })).toBeNull();
   });
+
+  it('rejects an unsupported image before making an upload request', async () => {
+    globalThis.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    });
+
+    renderPage();
+
+    fireEvent.change(screen.getByLabelText('Title'), {
+      target: { value: 'New Outfit' },
+    });
+    fireEvent.change(screen.getByLabelText('Outfit image'), {
+      target: {
+        files: [new File(['not an image'], 'notes.txt', { type: 'text/plain' })],
+      },
+    });
+    fireEvent.submit(screen.getByRole('button', { name: 'Add Outfit' }).closest('form'));
+
+    expect(await screen.findByText('Use a PNG, JPEG, or GIF image.')).toBeInTheDocument();
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a useful message when loading outfits fails', async () => {
+    globalThis.fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 503,
+      statusText: 'Service Unavailable',
+      headers: { get: () => 'application/json' },
+      json: async () => ({ error: 'Outfit service is unavailable' }),
+    });
+
+    renderPage();
+
+    expect(await screen.findByText(/outfit service is unavailable/i)).toBeInTheDocument();
+    expect(screen.queryByText('Loading your outfits...')).not.toBeInTheDocument();
+  });
 });

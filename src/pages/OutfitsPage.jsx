@@ -6,6 +6,25 @@ import { useAuth } from '../hooks/useAuth.js';
 import './OutfitsPage.css';
 import ImageModal from '../components/ImageModal.jsx';
 
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+const VALID_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif'];
+
+function validateOutfitForm({ title, selectedFile, wornOn }) {
+  if (!title.trim()) return 'A title is required.';
+  if (!selectedFile) return 'An outfit image is required.';
+  if (!VALID_IMAGE_TYPES.includes(selectedFile.type)) {
+    return 'Use a PNG, JPEG, or GIF image.';
+  }
+  if (selectedFile.size > MAX_IMAGE_SIZE) {
+    return 'Images must be 10 MB or smaller.';
+  }
+  if (wornOn && wornOn > new Date().toISOString().split('T')[0]) {
+    return 'The date worn cannot be in the future.';
+  }
+
+  return null;
+}
+
 function OutfitsPage() {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
@@ -38,7 +57,7 @@ function OutfitsPage() {
         setOutfits(data);
       } catch (err) {
         console.error(err);
-        setError('Could not load outfits');
+        setError(`Could not load outfits: ${err.message}`);
       } finally {
         setLoading(false);
       }
@@ -51,8 +70,9 @@ function OutfitsPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!title.trim() || !selectedFile) {
-      setError('Title and image are required.');
+    const validationError = validateOutfitForm({ title, selectedFile, wornOn });
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -209,25 +229,33 @@ function OutfitsPage() {
           </div>
         </header>
 
-        <form onSubmit={handleSubmit} className="add-outfit-form">
+        <form onSubmit={handleSubmit} className="add-outfit-form" noValidate>
           <h2>Add New Outfit</h2>
+          <label htmlFor="outfit-title">Title</label>
           <input
+            id="outfit-title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Describe your outfit..."
           />
+          <label htmlFor="outfit-items">Clothing items</label>
           <input
+            id="outfit-items"
             value={itemsInput}
             onChange={(e) => setItemsInput(e.target.value)}
             placeholder="Clothing items (comma separated: blue jeans, white t-shirt)"
           />
+          <label htmlFor="outfit-worn-on">Date worn</label>
           <input
+            id="outfit-worn-on"
             type="date"
             value={wornOn}
             onChange={(e) => setWornOn(e.target.value)}
             placeholder="Date worn"
           />
+          <label htmlFor="outfit-image">Outfit image</label>
           <input
+            id="outfit-image"
             type="file"
             accept="image/png, image/jpeg, image/gif"
             onChange={(e) => setSelectedFile(e.target.files[0])}
