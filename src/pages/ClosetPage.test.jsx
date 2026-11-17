@@ -74,7 +74,7 @@ describe('ClosetPage', () => {
       expect(screen.getByRole('heading', { name: '2 Clothing Items' })).toBeInTheDocument();
     });
 
-    expect(screen.getByText('White T-Shirt')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'View outfits with White T-Shirt' })).toBeInTheDocument();
     expect(screen.getByText('2 outfits')).toBeInTheDocument();
     expect(screen.getByText('Blue Jeans')).toBeInTheDocument();
     expect(screen.getByText('1 outfit')).toBeInTheDocument();

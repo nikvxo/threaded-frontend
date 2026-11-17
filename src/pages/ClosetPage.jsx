@@ -137,10 +137,15 @@ function ClosetPage() {
                 key={item.id} 
                 className="item-card"
               >
-                <div onClick={() => viewItemOutfits(item)} style={{ cursor: 'pointer', flex: 1 }}>
+                <button
+                  type="button"
+                  className="item-select-btn"
+                  onClick={() => viewItemOutfits(item)}
+                  aria-label={`View outfits with ${item.name}`}
+                >
                   <div className="item-name">{item.name}</div>
                   <div className="item-count">{item.usageCount} outfit{item.usageCount !== 1 ? 's' : ''}</div>
-                </div>
+                </button>
                 <button 
                   onClick={(e) => {
                     e.stopPropagation();
